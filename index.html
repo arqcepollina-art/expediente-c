@@ -240,6 +240,47 @@ const actividades = (s,b)=> uniq(TAX.filter(t=>t.sec===s&&t.sub===b).map(t=>t.ac
 const descrips    = (s,b,a)=> TAX.filter(t=>t.sec===s&&t.sub===b&&t.act===a);
 function taxSel(){ return TAX.find(t=>t.id===S.taxId) || null; }
 
+/* ---------- correcciones verificadas contra el texto del Acuerdo ----------
+   El catálogo se extrajo de una hoja de cálculo derivada de un OCR del PDF
+   oficial y arrastra dos defectos: umbrales invertidos o cruzados, y la
+   actividad económica rellenada hacia abajo en subsectores enteros — unas 200
+   de las 752 filas. Cada fila que se coteja contra el Acuerdo se corrige aquí
+   y queda marcada como confiable. Agregar filas conforme se verifiquen.     */
+const VERIFICADAS = {
+  '09-B-013': {
+    act:'Venta al por menor de aparatos eléctricos de uso doméstico, muebles, equipo de iluminación y otros enseres domésticos en comercios especializados.',
+    ciiu:'4759', c:['','<=500'], cpga:['>500',''], catmin:'C'
+  },
+  '09-A-028': {
+    act:'Venta de vehículos automotores.',
+    ciiu:'4510', c:['','<=500'], catmin:'C'
+  }
+};
+TAX.forEach(t=>{ const v=VERIFICADAS[t.id]; if(v){ Object.assign(t,v); t.ver=true; } });
+
+/* Detecta el arrastre: si dentro de un subsector una misma actividad económica
+   cubre la mayoría de las filas, esa columna no distingue nada y no sirve para
+   buscar. Por eso la cascada va por descripción, no por actividad.          */
+const ACT_ARRASTRADA = (()=>{
+  const porSub={};
+  TAX.forEach(t=>{ const k=t.sec+'|'+t.sub; (porSub[k]=porSub[k]||[]).push(t.act); });
+  const malos=new Set();
+  Object.entries(porSub).forEach(([k,acts])=>{
+    const cuenta={}; acts.forEach(a=>cuenta[a]=(cuenta[a]||0)+1);
+    const top=Math.max(...Object.values(cuenta));
+    if(acts.length>=4 && top/acts.length>=0.6) malos.add(k);
+  });
+  return malos;
+})();
+const actSospechosa = t => !!t && !t.ver && ACT_ARRASTRADA.has(t.sec+'|'+t.sub);
+
+const descripsSub = (s,b)=> TAX.filter(t=>t.sec===s && t.sub===b);
+function buscarDes(q){
+  const n = String(q||'').trim().toLowerCase();
+  if(n.length<3) return [];
+  return TAX.filter(t=> String(t.des||'').toLowerCase().includes(n)).slice(0,40);
+}
+
 /* ---------- pasos ---------- */
 const STEPS = [
   {id:'inicio',  t:'Empecemos',           h:'Dos preguntas para saber qué instrumento te toca.'},
@@ -379,24 +420,27 @@ function vInicio(){
 }
 
 function vProyecto(){
-  const s=get('sector',''), b=get('subsector',''), a=get('actividad','');
-  const ds = (s&&b&&a)? descrips(s,b,a):[];
+  const s=get('sector',''), b=get('subsector',''), q=get('buscaTax','');
+  const hits = buscarDes(q);
+  const ds = hits.length ? hits : ((s&&b)? descripsSub(s,b) : []);
   const t = taxSel();
   return `
   <fieldset><legend>Clasificación · Acuerdo Ministerial 402-2021</legend>
   <div class="grid two">
     ${field('sector','Sector',{opts:sectores(),hint:'La gran rama de actividad económica'})}
     ${field('subsector','Subsector',{opts:s?subsectores(s):[],dis:!s})}
-    ${field('actividad','Actividad económica (CIIU)',{opts:(s&&b)?actividades(s,b):[],dis:!b,span:true})}
   </div>
-  ${ds.length?`<div class="f span" style="margin-top:15px"><label>Descripción específica</label>
+  ${field('buscaTax','O buscá tu actividad por su descripción',{span:true,ph:'electrodomésticos, taller, bodega, vivienda, repuestos…',hint:'Tres letras o más. La búsqueda recorre las 752 descripciones del Listado, sin importar el sector.'})}
+  ${ds.length?`<div class="f span" style="margin-top:15px"><label>Descripción específica${hits.length?` · ${hits.length} resultado${hits.length===1?'':'s'}`:''}</label>
     <div class="hint">Elegí la línea que describe exactamente tu proyecto</div>
     <select data-k="taxId"><option value="">— elegir —</option>
-    ${ds.map(d=>`<option value="${esc(d.id)}" ${S.taxId===d.id?'selected':''}>${esc(d.des)}</option>`).join('')}
-    </select></div>`:''}
+    ${ds.map(d=>`<option value="${esc(d.id)}" ${S.taxId===d.id?'selected':''}>${esc(d.des)}${hits.length?` — ${esc(d.sec)} · ${esc(d.sub)}`:''}</option>`).join('')}
+    </select></div>`:(q&&q.trim().length>=3?`<div class="note">Sin resultados para «${esc(q)}». Probá con una palabra más corta, o elegí sector y subsector arriba.</div>`:'')}
   ${t?`<div class="taxbox">
-    <div class="id">${esc(t.id)}</div>
+    <div class="id">${esc(t.id)}${t.ver?' · <span style="color:var(--ok,#2e7d32)">✓ fila verificada contra el Acuerdo</span>':''}</div>
     <p><strong>${esc(t.des)}</strong></p>
+    <p>${esc(t.sec)} · ${esc(t.sub)}</p>
+    <p>Actividad económica (CIIU): ${esc(t.act||'—')}${t.ciiu?` · CIIU-4 ${esc(t.ciiu)}`:''}${actSospechosa(t)?' <em>— este dato viene arrastrado en el catálogo publicado; no te guíes por él</em>':''}</p>
     <p>Factor de impacto: ${esc(t.fac||'—')}${t.uni?` · Unidad: ${esc(t.uni)}`:''}</p>
     <table><thead><tr><th>C</th><th>C+PGA</th><th>B2</th><th>B1</th><th>A</th></tr></thead>
     <tbody><tr>
@@ -406,7 +450,7 @@ function vProyecto(){
       <td>${esc(t.b1.filter(Boolean).join(' – ')||'—')}</td>
       <td>${esc(t.a.filter(Boolean).join(' – ')||'—')}</td>
     </tr></tbody></table>
-    <p style="margin-top:9px;font-size:12.4px">Los umbrales son de referencia y deben verificarse contra el texto del Acuerdo Ministerial 402-2021.</p>
+    <p style="margin-top:9px;font-size:12.4px">${t.ver?'Umbrales verificados contra el texto del Acuerdo Ministerial 402-2021.':'Los umbrales son de referencia y <b>deben verificarse contra el texto del Acuerdo Ministerial 402-2021</b>: el catálogo publicado proviene de un OCR y varias filas traen los rangos cruzados o invertidos.'}</p>
   </div>`:''}
   </fieldset>
 
@@ -596,6 +640,63 @@ function vComo(){
   </fieldset>`;
 }
 
+/* ---------- lo que el MARN exige después ----------------------------------
+   Extraído de resoluciones aprobatorias reales (Distelsa y Grupo CODACA/Hino,
+   2008–2025). Un compromiso que la resolución impone y que el instrumento no
+   propuso es un compromiso que el proponente descubre cuando ya no puede
+   negociarlo. Proponerlo desde el instrumento reduce enmiendas y le da al
+   cliente el costo real antes de comprometerse.                            */
+const COMP_UNIVERSAL = [
+  'Cumplir los requerimientos ambientales del MARN y la legislación vigente, incluidos permisos, autorizaciones y licencias.',
+  'Desarrollar y cumplir todas las medidas de mitigación del instrumento dentro de los plazos propuestos.',
+  'El MARN se reserva el derecho de control y seguimiento ambiental, y puede iniciar procedimiento sancionatorio ante daño.',
+  'El MARN puede requerir la actualización del instrumento para garantizar la mejora continua.',
+  'La viabilidad ambiental cubre <b>únicamente</b> lo descrito y el diseño presentado: cualquier modificación exige presentar antes el instrumento correspondiente.',
+  'La resolución da viabilidad ambiental pero no autoriza el desarrollo: queda sujeto a las demás instituciones.',
+  'Si se comprueba falsedad de la información, el instrumento pierde vigencia automáticamente.',
+  'Al cierre, presentar Plan de Cierre Técnico o de Abandono a la DIGARN y archivar el instrumento.'
+];
+const COMP_OPERACION = [
+  'Plan permanente de manejo integral de residuos conforme al AG 164-2021, con contenedores identificados en área techada y ventilada.',
+  'Entregar los reciclables a acopio o procesadora con licencia ambiental vigente, y conservar copia de esa licencia.',
+  'Prohibido incinerar residuos, y prohibido verter desechos líquidos al alcantarillado sin tratamiento.',
+  'RAEE (luminarias, baterías, equipo de cómputo) a gestor autorizado por el MARN, nunca mezclados con residuos comunes.',
+  'Luminarias LED y artefactos ahorradores de agua; verificación periódica de las instalaciones eléctricas.',
+  'Toda materia prima, equipo y servicio debe provenir de empresas con instrumento ambiental vigente.',
+  'Educación ambiental al personal (AG 189-2017) y cumplimiento del AG 229-2014 de salud y seguridad ocupacional, con registros.'
+];
+const COMP_CONSTRUCCION = [
+  'Ripio y residuos de construcción a vertedero municipal autorizado, con manejo diferenciado por tipo.',
+  'Riegos para evitar levantamiento de polvo, y trabajo únicamente en horarios diurnos y hábiles.',
+  'Ruta y horarios definidos para el traslado de desechos, minimizando el impacto en el tránsito.',
+  'Sanitarios portátiles de empresa con licencia ambiental vigente si no hay servicios propios en obra.',
+  'EPP completo (mascarilla, guantes, lentes, casco) y acceso restringido al área.'
+];
+const COMP_TIPOLOGIA = [
+  { test: t => /taller|lubricentro|aceiter|enderezado|lavado de veh/i.test(t.des||''),
+    titulo: 'Taller, lubricentro o car wash',
+    items: [
+      'Área específica de recolección de aceites y lubricantes usados, en contenedores adecuados, con retiro por empresa con licencia vigente.',
+      'Mantenimiento de las trampas de grasa y prevención de derrames al alcantarillado. Fosa API funcional donde aplique.',
+      'Prohibido almacenar desechos sólidos directamente en el suelo: recipientes cerrados y disposición autorizada.',
+      'Residuos con combustible, lubricantes o aceites: manejo exclusivamente por empresa con licencia ambiental vigente.',
+      'Capacitaciones periódicas contra incendios, manuales de emergencia y bitácora de limpieza y mantenimiento.'
+    ]},
+  { test: t => /venta de veh|exhibición y venta/i.test(t.des||''),
+    titulo: 'Predio de exhibición y venta de vehículos',
+    items: [
+      'El MARN impone «no contemplar mantenimiento de vehículos dentro del predio»: declararlo de forma positiva en el instrumento.',
+      'Prohibido descargar aceites, pinturas u otras sustancias contaminantes a los drenajes.'
+    ]},
+  { test: t => /partes, piezas y accesorios|repuesto/i.test(t.des||''),
+    titulo: 'Venta de partes, piezas y accesorios',
+    items: [
+      'Si los repuestos se compran a otra empresa, solicitar y conservar copia de su licencia ambiental vigente.',
+      'El residuo dominante es el embalaje (cartón y plástico): segregación en origen y entrega a recicladores autorizados.',
+      'Declarar expresamente que el inventario no incluye lubricantes a granel, aceites usados ni fluidos peligrosos, y que no hay reparación in situ.'
+    ]}
+];
+
 function vGenera(){
   const F = esEAI()?['Construcción','Operación']:['Operación'];
   const imp = (k,label,hint)=>`
@@ -644,7 +745,20 @@ function vGenera(){
   ${yn('etnias','¿Hay etnias predominantes en el área de influencia?')}
   ${yn('afectaArquitectonica','¿Puede afectarse la belleza arquitectónica del lugar?')}
   ${yn('afectaPaisaje','¿Puede afectarse la belleza paisajística del lugar?')}
-  </fieldset>`;
+  </fieldset>
+
+  ${(()=>{ const t=taxSel();
+    const propias = t ? COMP_TIPOLOGIA.filter(c=>c.test(t)) : [];
+    const li = a => a.map(x=>`<li><span class="m">☐</span><span>${x}</span></li>`).join('');
+    return `<fieldset><legend>Lo que el MARN va a exigir después</legend>
+    <div class="note">Esto sale de resoluciones aprobatorias reales. No es lo que vos proponés: es lo que la autoridad resolvió en expedientes parecidos.
+    <b>Un compromiso que no propusiste te lo imponen igual</b>, y para entonces tu cliente ya no puede negociarlo ni presupuestarlo. Conviene escribirlos como medidas de mitigación desde ahora.</div>
+    ${propias.map(c=>`<div style="margin-bottom:14px"><label>${esc(c.titulo)}</label><ul class="docs" style="max-height:none">${li(c.items)}</ul></div>`).join('')}
+    ${!t?'<div class="note">Elegí tu actividad en el paso «Tu proyecto» para ver los compromisos propios de esa tipología.</div>':''}
+    <div style="margin-bottom:14px"><label>Fase de operación</label><ul class="docs" style="max-height:none">${li(COMP_OPERACION)}</ul></div>
+    ${esEAI()?`<div style="margin-bottom:14px"><label>Fase de construcción</label><ul class="docs" style="max-height:none">${li(COMP_CONSTRUCCION)}</ul></div>`:''}
+    <div><label>En toda resolución, sea C, C con PGA o B2</label><ul class="docs" style="max-height:none">${li(COMP_UNIVERSAL)}</ul></div>
+    </fieldset>`; })()}`;
 }
 
 function vReunir(){
@@ -763,6 +877,18 @@ document.addEventListener('input',e=>{
   const k=e.target.dataset.k; if(!k) return;
   S[k]=e.target.value; save();
   if(['sector','subsector','actividad','taxId'].includes(k)) return;
+  /* La búsqueda del Listado Taxativo sí necesita repintar mientras se escribe.
+     El resto de campos no repinta a propósito, para no perder el foco; aquí lo
+     devolvemos a mano, con la posición del cursor, tras un respiro de 220 ms. */
+  if(k==='buscaTax'){
+    const pos = e.target.selectionStart;
+    clearTimeout(window.__tBusca);
+    window.__tBusca = setTimeout(()=>{
+      render();
+      const el = document.querySelector('[data-k="buscaTax"]');
+      if(el){ el.focus(); try{ el.setSelectionRange(pos,pos); }catch(_){} }
+    }, 220);
+  }
 });
 document.addEventListener('change',e=>{
   const k=e.target.dataset.k; if(!k) return;
@@ -770,6 +896,13 @@ document.addEventListener('change',e=>{
   if(k==='sector'){ delete S.subsector; delete S.actividad; delete S.taxId; }
   if(k==='subsector'){ delete S.actividad; delete S.taxId; }
   if(k==='actividad'){ delete S.taxId; }
+  /* Al elegir por búsqueda, el sector y el subsector se deducen de la fila
+     elegida: así el resto del expediente queda coherente aunque la persona
+     nunca haya tocado los dos menús. */
+  if(k==='taxId'){
+    const fila = TAX.find(t=>t.id===S.taxId);
+    if(fila){ S.sector=fila.sec; S.subsector=fila.sub; }
+  }
   save(); render();
 });
 

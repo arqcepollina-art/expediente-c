@@ -2,7 +2,7 @@
 
 Contexto para retomar el proyecto. Registra por qué las cosas están como están, no solo qué hacen.
 
-Última actualización: agosto 2026 · primera versión publicada.
+Última actualización: agosto 2026 · segunda versión: catálogo corregido, búsqueda por descripción y compromisos ambientales.
 
 ---
 
@@ -56,7 +56,15 @@ La cascada es sector → subsector → actividad económica (CIIU) → descripci
 
 ## Deuda conocida
 
-**Los umbrales numéricos vienen sucios.** El catálogo se extrajo de una hoja de cálculo derivada de un OCR del PDF oficial. Varias filas traen los rangos cruzados o incompletos — la de remodelaciones dice «C: >500 – 200», que no significa nada. Por eso **no hay categorización automática**: la herramienta muestra los umbrales como referencia y advierte que deben verificarse contra el texto del Acuerdo. Preferir un veredicto seguro y equivocado sería peor que no dar veredicto.
+**El catálogo tiene dos defectos, no uno.** Ambos vienen del OCR del PDF oficial del que se derivó la hoja de cálculo.
+
+El primero ya estaba identificado: **los umbrales vienen sucios**. Varias filas traen los rangos cruzados o incompletos — la de remodelaciones dice «C: >500 – 200», que no significa nada. Peor que ilegible es *invertido*: la fila 09-B-013 decía «C: >=500» cuando es «C: <=500». Un rango invertido se lee como válido y categoriza al revés. Por eso **sigue sin haber categorización automática**.
+
+El segundo apareció después y es más difícil de ver: **la actividad económica está arrastrada**. En el PDF oficial esa columna va en celda combinada que cubre varias filas, y el OCR la rellenó hacia abajo con el primer valor. Alrededor de **200 de las 752 filas** quedaron con la actividad de otra. El caso más visible es COMERCIO AL POR MENOR: 19 de sus 20 filas dicen «Venta al por menor de bebidas en comercios especializados», incluidas ferreterías, librerías, armerías y electrodomésticos.
+
+Eso rompía la cascada, porque el paso sector → subsector → **actividad** se apoyaba justo en la columna corrupta. La corrección fue cambiar el camino, no inventar los datos: **ahora se busca por descripción**, que sí quedó bien, y la actividad económica pasó a ser informativa, con un aviso cuando la fila cae en un subsector con arrastre detectado. La detección es automática (`ACT_ARRASTRADA`): si dentro de un subsector una misma actividad cubre el 60% o más de las filas, esa columna no distingue nada.
+
+**Filas verificadas.** La constante `VERIFICADAS` guarda las filas que ya se cotejaron contra el texto del Acuerdo, con su CIIU-4 y sus umbrales correctos, y la interfaz las marca como confiables. Van dos: 09-B-013 (venta al detalle de decorativos, hogar, electrónicos y electrodomésticos — CIIU 4759, C hasta 500 m²) y 09-A-028 (predios de exhibición y venta de vehículos sin taller — CIIU 4510, C hasta 500 m²). Agregar filas ahí conforme se verifiquen es lo que va a desbloquear la categorización automática, y es más barato que limpiar las 752 de una vez: se limpian las que la firma usa.
 
 Los nombres de actividad sí se limpiaron: el OCR generaba variantes corruptas del mismo texto («Construcción de Construc ción tío edificios»), que se agrupan por clave normalizada conservando la variante más limpia.
 
@@ -67,6 +75,21 @@ Los nombres de actividad sí se limpiaron: el OCR generaba variantes corruptas d
 **No genera el formulario en Word ni el anexo fotográfico.** Ese era el entregable original y sigue pendiente.
 
 **No cubre Categoría C con Plan de Gestión Ambiental.** Buena noticia: en SAGA el PGA no es otro formulario, se adjunta como documento al mismo expediente. Se puede agregar como módulo sin rehacer la captura.
+
+## Lo que el MARN exige después
+
+La herramienta nació mirando solo el lado de entrada: lo que el proponente presenta. Las **resoluciones aprobatorias** son el lado de salida, y dicen algo que el instrumento no puede saber solo: qué compromisos impone la autoridad.
+
+De 11 resoluciones del Grupo CODACA/Hino y del lote de Distelsa (2008–2025) salió un patrón estable. Hay un bloque universal que aparece en todas —sea C, C con PGA o B2—, un bloque de fase operativa común a comercio y servicios, uno de fase constructiva para los predictivos, y unos pocos compromisos propios de cada tipología. Están en el paso «Qué genera», en las constantes `COMP_UNIVERSAL`, `COMP_OPERACION`, `COMP_CONSTRUCCION` y `COMP_TIPOLOGIA`.
+
+**Por qué está en la herramienta y no solo en un documento aparte:** un compromiso que la resolución impone y que el instrumento no propuso es un compromiso que el proponente descubre cuando ya lo firmó y no puede negociarlo ni presupuestarlo. Proponerlo desde el instrumento reduce enmiendas y le da al cliente el costo real antes de comprometerse. La regla práctica: si el MARN lo impuso en tres resoluciones de la misma tipología, lo va a imponer en la cuarta.
+
+Ese bloque dice **qué** incluir, nunca **cómo** escribirlo. El registro de una resolución es resolutivo y no es el del consultor; dejarlo entrar a la redacción hace que los instrumentos suenen a MARN.
+
+Dos hallazgos de esas resoluciones que cambian decisiones antes de cotizar:
+
+- **Los umbrales se aplican de verdad.** Una tienda de repuestos de 128 m² se resolvió en B2, veintiocho metros arriba del umbral de 100 m² de la fila 09-A-027. Un taller de 480.79 m² se tramitó como C con PGA, justo debajo de los 500.
+- **En una agencia de venta sin taller el MARN impone «no contemplar mantenimiento de vehículos dentro del predio»**, así que conviene declararlo de forma positiva en el instrumento en lugar de callarlo.
 
 ## Lo que aprendimos de SAGA
 
@@ -80,8 +103,9 @@ Detalle a tener presente: en la vista de expediente de SAGA **las etiquetas de l
 
 En orden de valor:
 
-1. **La Skill «EAI Categoría C»** — empaquetar la forma de redactar (fórmula de apertura, medidas de mitigación por tipología, enganche a licencia madre) para que funcione en cualquier sesión de Claude, no solo dentro de esta página.
-2. **Autogenerar la descripción del proyecto** a partir de los datos capturados.
-3. **Generar el `.docx`** con el formato oficial.
-4. **Limpiar los umbrales del taxativo** contra el PDF, y recién entonces activar categorización automática.
+1. ~~**La Skill «EAI Categoría C»**~~ — **hecha.** Empaqueta las fórmulas de redacción por tipología (vivienda, comercio, taller y lubricentro, venta de vehículos y repuestos), el motor de coherencia, el catálogo de compromisos ambientales y un generador del formulario oficial en `.docx` con el membrete del MARN. Vive fuera de este repositorio, como skill de Claude.
+2. **Autogenerar la descripción del proyecto** a partir de los datos capturados, siguiendo la fórmula de apertura del machote.
+3. **Generar el `.docx`** desde esta página. La Skill ya lo hace a partir del mismo `.json` que exporta la herramienta, así que aquí bastaría con enlazarlo o portar el generador.
+4. **Seguir verificando filas del taxativo** contra el PDF oficial, agregándolas a `VERIFICADAS`. Cuando estén las que la firma usa a diario, se puede activar categorización automática para esas y solo para esas.
 5. **Enlazar desde el clasificador**: cuando el resultado sea Categoría C, ofrecer el enlace a esta herramienta.
+6. **Reconstruir la columna de actividad económica** desde el PDF oficial. Es lo único que devolvería la cascada por actividad; mientras tanto la búsqueda por descripción la sustituye bien.

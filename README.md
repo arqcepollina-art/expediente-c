@@ -11,7 +11,8 @@ Guía a la persona por siete pasos en lenguaje llano, le dice qué instrumento l
 ## Qué hace
 
 - **Determina el instrumento** a partir de una sola pregunta: si el proyecto ya está construido o todavía no.
-- **Clasifica contra el Listado Taxativo** (Acuerdo Ministerial 402-2021), con las 752 actividades embebidas y cascada de sector → subsector → actividad → descripción específica.
+- **Clasifica contra el Listado Taxativo** (Acuerdo Ministerial 402-2021), con las 752 actividades embebidas. Se busca **por descripción** —escribiendo «taller», «electrodomésticos», «bodega»— o eligiendo sector y subsector. Las filas ya cotejadas contra el texto del Acuerdo se marcan como verificadas; las demás muestran sus umbrales con la advertencia de que provienen de un OCR y pueden venir cruzados.
+- **Anticipa los compromisos que impone el MARN.** Según la actividad elegida, muestra lo que la autoridad resolvió en expedientes reales: el bloque universal, el de fase operativa, el de fase constructiva y los propios de cada tipología. Un compromiso que no se propuso en el instrumento se impone igual, y para entonces el proponente ya no puede presupuestarlo.
 - **Se adapta a la vía de presentación.** En ventanilla del MARN muestra unos campos; en SAGA muestra los que esa plataforma pide de más (CUI, NIT y contacto del representante, fase de abandono, combustibles, lubricantes, clasificación de residuos).
 - **Advierte lo que el proyecto dispara.** Aguas residuales especiales piden Ingeniero Sanitarista; el SIGAP pide CONAP; movimiento de tierra pide plano de curvas de nivel. Las alertas se actualizan conforme se llena.
 - **Arma la lista de documentos** — legales y técnicos — según las respuestas.
@@ -64,6 +65,20 @@ El catálogo está embebido dentro de `index.html`, en la línea que empieza con
 ```
 
 Cada categoría lleva un par `[mínimo, máximo]`. Si el MARN reforma el Listado Taxativo, se reemplaza ese arreglo.
+
+### Filas verificadas
+
+El catálogo embebido proviene de un OCR del PDF oficial y arrastra dos defectos: umbrales cruzados o invertidos, y la actividad económica rellenada hacia abajo en subsectores enteros (unas 200 de las 752 filas). Por eso la búsqueda va por descripción y no por actividad.
+
+Cuando una fila se coteja contra el texto del Acuerdo, se corrige en la constante `VERIFICADAS`, cerca de `taxSel()`:
+
+```js
+const VERIFICADAS = {
+  '09-B-013': { act:'…', ciiu:'4759', c:['','<=500'], cpga:['>500',''], catmin:'C' }
+};
+```
+
+La interfaz marca esas filas como verificadas y cambia la advertencia de umbrales. Ir agregando las filas que se usan a diario es más barato que limpiar las 752 de una vez, y es el camino para activar categorización automática sin arriesgar un veredicto equivocado.
 
 ## Limitaciones conocidas
 
