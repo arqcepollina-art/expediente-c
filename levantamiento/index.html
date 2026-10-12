@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Levantamiento de Información</title>
+<meta name="description" content="Formulario para que el cliente entregue la información necesaria para el instrumento ambiental Categoría C (SAGA – MARN).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f5f1; --surface:#ffffff; --surface-2:#f0efe9; --ink:#1d2421; --muted:#5f6b66; --line:#dcdad2;
+  --accent:#2f6b4f; --accent-ink:#ffffff; --accent-soft:#e3efe8; --warn:#9a5b12; --warn-soft:#fbf0de; --focus:#3d8a66;
+  --radius:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121614; --surface:#1a1f1d; --surface-2:#222826; --ink:#e7ece9; --muted:#9aa7a1; --line:#2f3633;
+    --accent:#6fbf96; --accent-ink:#0f1a14; --accent-soft:#1f3329; --warn:#e3a85a; --warn-soft:#33281a; --focus:#8fd3b0;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121614; --surface:#1a1f1d; --surface-2:#222826; --ink:#e7ece9; --muted:#9aa7a1; --line:#2f3633;
+  --accent:#6fbf96; --accent-ink:#0f1a14; --accent-soft:#1f3329; --warn:#e3a85a; --warn-soft:#33281a; --focus:#8fd3b0;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 Inter,system-ui,-apple-system,Segoe UI,sans-serif;-webkit-font-smoothing:antialiased}
+header.top{background:var(--surface);border-bottom:1px solid var(--line)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.top .wrap{display:flex;gap:16px;align-items:center;justify-content:space-between;padding-top:18px;padding-bottom:18px;flex-wrap:wrap}
+.brand small{display:block;color:var(--muted);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+.brand h1{font:600 22px/1.2 "Source Serif 4",Georgia,serif;margin:2px 0 0}
+.saved{font-size:12px;color:var(--muted)}
+.layout{display:grid;grid-template-columns:240px 1fr;gap:28px;padding-top:24px;padding-bottom:80px}
+nav.steps{position:sticky;top:16px;align-self:start}
+nav.steps ol{list-style:none;margin:0;padding:0}
+nav.steps button{all:unset;box-sizing:border-box;display:flex;gap:10px;align-items:center;width:100%;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:14px}
+nav.steps button:hover{background:var(--surface-2)}
+nav.steps button[aria-current="true"]{background:var(--accent-soft);color:var(--ink);font-weight:600}
+nav.steps button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.num{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;border:1px solid var(--line);background:var(--surface)}
+.done .num{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.lbl{flex:1}
+.pct{font-size:11px;font-variant-numeric:tabular-nums}
+.overall{margin:14px 10px 0;font-size:12px;color:var(--muted)}
+.bar{height:6px;background:var(--surface-2);border-radius:4px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.intro{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:20px}
+.intro p{margin:0 0 8px}.intro p:last-child{margin:0}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px 22px 8px;display:none}
+section.card.active{display:block}
+section.card h2{font:600 20px/1.3 "Source Serif 4",Georgia,serif;margin:0 0 4px}
+section.card .why{color:var(--muted);margin:0 0 18px;font-size:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f.full{grid-column:1/-1}
+.f>label,.f>.legend{font-weight:500;font-size:14px}
+.req{color:var(--warn)}
+.help{font-size:12.5px;color:var(--muted)}
+input[type=text],input[type=number],input[type=email],input[type=tel],input[type=date],select,textarea{
+  width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+textarea{min-height:84px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--focus);outline-offset:0;border-color:transparent}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts label{display:flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);cursor:pointer;font-size:14px}
+.opts input{accent-color:var(--accent);margin:0}
+.opts label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.subhead{grid-column:1/-1;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin-top:4px}
+.subhead:first-child{border-top:0;padding-top:0;margin-top:0}
+.pager{display:flex;justify-content:space-between;gap:10px;margin:22px 0 14px;flex-wrap:wrap}
+.btn{font:600 14px Inter,sans-serif;border-radius:8px;padding:10px 16px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 18px}
+.note{background:var(--warn-soft);color:var(--ink);border-radius:8px;padding:12px 14px;font-size:14px;margin-bottom:16px}
+.missing{font-size:14px;margin:0 0 18px;padding-left:18px}
+.missing li{margin:2px 0}
+.missing a{color:var(--accent);cursor:pointer}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;max-width:calc(100% - 32px)}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.calcbox{background:var(--accent-soft);border-radius:8px;padding:14px 16px;font-size:14px}
+.calcbox h3{margin:0 0 8px;font-size:14px}
+.calcbox table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.calcbox td{padding:5px 0;border-top:1px solid var(--line);vertical-align:top}
+.calcbox td.v{text-align:right;font-weight:600;white-space:nowrap;padding-left:12px}
+.calcbox .formula{display:block;color:var(--muted);font-size:12.5px}
+.calcbox p{margin:6px 0 0;color:var(--muted);font-size:12.5px}
+.hidden{display:none!important}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:0 16px 30px}
+@media (max-width:820px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:16px}
+  nav.steps,main{min-width:0}
+  nav.steps{position:static}
+  nav.steps ol{display:flex;overflow-x:auto;gap:6px;padding-bottom:4px}
+  nav.steps li{flex:none}
+  nav.steps button{width:auto;white-space:nowrap}
+  nav.steps .lbl,nav.steps .pct{display:none}
+  nav.steps button[aria-current="true"] .lbl{display:inline}
+  .grid{grid-template-columns:1fr}
+  section.card{padding:18px 16px 6px}
+}
+@media print{
+  header.top .saved,nav.steps,.pager,.actions,.intro{display:none!important}
+  .layout{display:block}
+  section.card{display:block!important;break-inside:avoid;border:0;padding:0 0 16px}
+  body{background:#fff;color:#000}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <small>Consultoría y Arquitectura Ambiental, S.A.</small>
+      <h1>Levantamiento de información — Instrumento ambiental Categoría C</h1>
+    </div>
+    <div class="saved" id="saved">Sin cambios</div>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <nav class="steps" aria-label="Secciones">
+    <ol id="stepList"></ol>
+    <div class="overall"><span id="overallTxt">0% completo</span><div class="bar"><i id="overallBar"></i></div></div>
+  </nav>
+
+  <main>
+    <div class="intro">
+      <p><strong>¿Para qué es este formulario?</strong> Con esta información preparamos el instrumento ambiental de su proyecto para ingresarlo al sistema SAGA del Ministerio de Ambiente y Recursos Naturales (MARN).</p>
+      <p>Lo que escribe se guarda automáticamente en este navegador, así que puede cerrar la página y continuar después. Si un dato no lo conoce, déjelo en blanco y anótelo en «Observaciones». Los campos con <span class="req">*</span> son los más importantes.</p>
+    </div>
+    <form id="form" autocomplete="on" novalidate></form>
+  </main>
+</div>
+<footer>Consultoría y Arquitectura Ambiental, S.A. · Licencia Ambiental No. 1024 DIGARN-MARN</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="importFile" accept="application/json,.json" class="hidden">
+
+<script>
+(function(){
+"use strict";
+var STORE = "caa-levantamiento-c-v1";
+var EMAIL = "coordinacion@caa.com.gt";
+var DEPTOS = ["Alta Verapaz","Baja Verapaz","Chimaltenango","Chiquimula","El Progreso","Escuintla","Guatemala","Huehuetenango","Izabal","Jalapa","Jutiapa","Petén","Quetzaltenango","Quiché","Retalhuleu","Sacatepéquez","San Marcos","Santa Rosa","Sololá","Suchitepéquez","Totonicapán","Zacapa"];
+var SINO = ["Sí","No"];
+var IND = "Una persona individual (empresa individual)";
+var SOC = "Una Sociedad Anónima u otra sociedad";
+/* Factores de cálculo — ajustar aquí si cambia el criterio */
+var FACT = {
+  aguaLpd: 90,      /* L de agua potable por colaborador al día (TF 036: 70 L/día de agua residual ordinaria por persona ÷ 0.80) */
+  aro: 0.80,        /* agua residual ordinaria = 80 % del agua potable consumida */
+  residuosKgpd: 0.5,/* kg de residuos sólidos comunes por colaborador al día */
+  dias: 30          /* días de operación por mes */
+};
+
+/* Field: k=key, l=label, t=type, r=required, o=options, h=help, full, show=[key,value] */
+var S = [
+ {id:"propietario", t:"Propietario", why:"Indique a quién pertenece el proyecto. Si es una persona individual, los datos se toman de su DPI y RTU.", f:[
+  {k:"tipoPersona",l:"El proyecto pertenece a",t:"radio",o:[IND,SOC],r:1,full:1},
+  {sub:"Datos del propietario",show:["tipoPersona",IND]},
+  {k:"propNombre",l:"Nombre completo del propietario",r:1,full:1,show:["tipoPersona",IND],h:"Tal como aparece en el DPI."},
+  {k:"propCUI",l:"CUI (DPI)",r:1,show:["tipoPersona",IND],h:"13 dígitos."},
+  {k:"propNit",l:"NIT",r:1,show:["tipoPersona",IND]},
+  {k:"propTel",l:"Teléfono",t:"tel",r:1,show:["tipoPersona",IND]},
+  {k:"propEmail",l:"Correo electrónico",t:"email",r:1,show:["tipoPersona",IND]},
+  {k:"propDireccion",l:"Dirección de residencia o fiscal",full:1,show:["tipoPersona",IND],h:"Según el RTU."},
+  {sub:"Los datos de la sociedad y de su representante legal se solicitan en las dos secciones siguientes.",show:["tipoPersona",SOC]}
+ ]},
+ {id:"empresa", t:"Empresa", why:"Datos de la empresa que opera el proyecto. Una empresa individual se inscribe a nombre de su propietario; una sociedad tiene escritura de constitución y patente de sociedad.", f:[
+  {sub:"Elija primero en la sección «Propietario» si el proyecto es de una persona individual o de una sociedad.",show:["tipoPersona",""]},
+  {sub:"Empresa individual",show:["tipoPersona",IND]},
+  {sub:"Sociedad",show:["tipoPersona",SOC]},
+  {k:"tipoSociedad",l:"Tipo de sociedad",t:"select",o:["Sociedad Anónima","Sociedad de Responsabilidad Limitada","Otra"],r:1,show:["tipoPersona",SOC]},
+  {k:"razonSocial",l:"Razón social",r:1,show:["tipoPersona",SOC],h:"Tal como aparece en el RTU."},
+  {k:"nitEmpresa",l:"NIT de la sociedad",r:1,show:["tipoPersona",SOC]},
+  {k:"nombreComercial",l:"Nombre comercial",r:1,show:["tipoPersona","!"]},
+  {k:"dirFiscal",l:"Dirección fiscal de la empresa",full:1,show:["tipoPersona","!"],h:"Según el RTU."},
+  {k:"actividadRTU",l:"Actividad económica registrada en el RTU",full:1,t:"textarea",show:["tipoPersona","!"],h:"Copie la actividad tal como aparece en el RTU."},
+  {sub:"Constitución de la sociedad",show:["tipoPersona",SOC]},
+  {k:"escritura",l:"No. de escritura de constitución",show:["tipoPersona",SOC]},
+  {k:"fechaConstitucion",l:"Fecha de constitución",t:"date",show:["tipoPersona",SOC]},
+  {k:"notario",l:"Notario autorizante",full:1,show:["tipoPersona",SOC]},
+  {sub:"Patente de Sociedad",show:["tipoPersona",SOC]},
+  {k:"patSocReg",l:"Registro",show:["tipoPersona",SOC]},
+  {k:"patSocFol",l:"Folio",show:["tipoPersona",SOC]},
+  {k:"patSocLib",l:"Libro",show:["tipoPersona",SOC]},
+  {sub:"Patente de Comercio de Empresa",show:["tipoPersona","!"]},
+  {k:"patComReg",l:"Registro",show:["tipoPersona","!"]},{k:"patComFol",l:"Folio",show:["tipoPersona","!"]},{k:"patComLib",l:"Libro",show:["tipoPersona","!"]},
+  {sub:"Patente de Comercio del establecimiento (sucursal)",show:["tipoPersona","!"]},
+  {k:"patSucReg",l:"Registro",h:"Debe corresponder al local que se evalúa.",show:["tipoPersona","!"]},{k:"patSucFol",l:"Folio",show:["tipoPersona","!"]},{k:"patSucLib",l:"Libro",show:["tipoPersona","!"]},
+  {k:"patenteSucursalExpediente",l:"Si la patente está en trámite: No. de expediente y fecha",full:1,show:["tipoPersona","!"]}
+ ]},
+ {id:"representante", t:"Representante y contacto", why:"Persona que firma el instrumento ante el MARN y contacto para el seguimiento del trámite.", f:[
+  {sub:"Como el proyecto es de una persona individual, el instrumento lo firma el propietario. Indique solo el contacto para el seguimiento.",show:["tipoPersona",IND]},
+  {sub:"Representante legal",show:["tipoPersona",SOC]},
+  {k:"repNombre",l:"Nombre completo",r:1,full:1,show:["tipoPersona",SOC]},
+  {k:"cui",l:"CUI (DPI)",r:1,h:"13 dígitos.",show:["tipoPersona",SOC]},
+  {k:"repNit",l:"NIT personal",r:1,show:["tipoPersona",SOC]},
+  {k:"repCargo",l:"Cargo",r:1,h:"Ej. Gerente General y Representante Legal.",show:["tipoPersona",SOC]},
+  {k:"repNombramiento",l:"Datos de inscripción del nombramiento",h:"Registro, folio y libro del Registro Mercantil.",show:["tipoPersona",SOC]},
+  {k:"repTel",l:"Teléfono",t:"tel",r:1,show:["tipoPersona",SOC]},{k:"repEmail",l:"Correo electrónico",t:"email",r:1,show:["tipoPersona",SOC]},
+  {sub:"Contacto para el seguimiento del trámite"},
+  {k:"contactoNombre",l:"Nombre del contacto",r:1},{k:"contactoCargo",l:"Cargo del contacto"},
+  {k:"contactoTel",l:"Teléfono del contacto",t:"tel",r:1},{k:"contactoEmail",l:"Correo del contacto",t:"email",r:1}
+ ]},
+ {id:"inmueble", t:"Ubicación e inmueble", why:"Dirección del proyecto y datos registrales de la finca donde se ubica.", f:[
+  {k:"nombreProyecto",l:"Nombre del proyecto / establecimiento",r:1,full:1,h:"Nombre con el que se identifica el local. Ej. Tienda Centro Escuintla."},
+  {k:"fuenteDireccion",l:"¿De qué documento toma la dirección?",t:"radio",o:["Contrato de arrendamiento","Certificación catastral","Certificación del Registro de la Propiedad","Ningún documento"],r:1,full:1},
+  {k:"direccionDocumento",l:"Dirección del inmueble",t:"textarea",r:1,full:1,h:"Escríbala exactamente como aparece en el contrato de arrendamiento o en la certificación catastral, si la tiene."},
+  {sub:"Datos de la dirección (para el sistema SAGA)"},
+  {k:"calle",l:"Calle / avenida / kilómetro"},
+  {k:"complemento",l:"Número, plaza, local, lote"},
+  {k:"zona",l:"Zona"},
+  {k:"aldea",l:"Aldea, colonia o lotificación"},
+  {k:"depto",l:"Departamento",t:"select",o:DEPTOS,r:1},
+  {k:"municipio",l:"Municipio",r:1},
+  {k:"ubicacionMaps",l:"Enlace de Google Maps o coordenadas",full:1,h:"Opcional. Abra Google Maps, mantenga presionado sobre el local y copie las coordenadas o comparta el enlace."},
+  {sub:"Datos registrales"},
+  {k:"finca",l:"No. de finca",r:1},{k:"folio",l:"Folio",r:1},{k:"libro",l:"Libro",r:1},
+  {k:"libroDepto",l:"Libro de (departamento)",t:"select",o:DEPTOS},
+  {k:"tenencia",l:"¿El inmueble es propio o arrendado?",t:"radio",o:["Propio","Arrendado","En usufructo / otro"],r:1,full:1},
+  {k:"propietario",l:"Nombre del propietario del inmueble",full:1,show:["tenencia","!Propio"]},
+  {k:"enCentroComercial",l:"¿Se ubica dentro de un centro comercial o complejo?",t:"radio",o:SINO,r:1,full:1},
+  {k:"nombreComplejo",l:"Nombre del centro comercial / complejo",show:["enCentroComercial","Sí"]},
+  {k:"licenciaMadre",l:"Licencia ambiental del centro comercial (si la conoce)",show:["enCentroComercial","Sí"]},
+  {k:"expedienteMadre",l:"No. de expediente MARN del centro comercial (si lo conoce)",show:["enCentroComercial","Sí"],full:1}
+ ]},
+ {id:"areas", t:"Áreas y colindancias", why:"Las áreas se verifican con los planos; las colindancias describen qué hay a cada lado del local.", f:[
+  {k:"areaTerreno",l:"Área del terreno o local (m²)",t:"number",r:1},
+  {k:"areaConstruccion",l:"Área de construcción (m²)",t:"number",r:1},
+  {k:"areaOcupacion",l:"Área de ocupación / huella (m²)",t:"number"},
+  {k:"niveles",l:"Número de niveles",t:"number"},
+  {k:"estadoProyecto",l:"Situación del proyecto",t:"radio",o:["Ya está operando","Por construir o remodelar","Operando y se va a remodelar"],r:1,full:1},
+  {k:"fechaInicioOperacion",l:"Fecha (aproximada) de inicio de operaciones",t:"date",show:["estadoProyecto","!Por construir o remodelar"]},
+  {k:"obraDescripcion",l:"Describa la obra o remodelación",t:"textarea",full:1,show:["estadoProyecto","!Ya está operando"],h:"Qué se va a construir, duración estimada, número de trabajadores de obra."},
+  {sub:"Colindancias"},
+  {k:"colNorte",l:"Al norte",r:1,h:"Ej. pasillo interno, local comercial, calle…"},
+  {k:"colSur",l:"Al sur",r:1},{k:"colEste",l:"Al este",r:1},{k:"colOeste",l:"Al oeste",r:1},
+  {k:"entorno",l:"Entorno",t:"radio",o:["Urbano","Rural"],r:1,full:1}
+ ]},
+ {id:"operacion", t:"Operación", why:"Qué se hace en el lugar, cuántas personas trabajan y en qué horario. El número de colaboradores es la base para calcular el agua y los residuos.", f:[
+  {k:"actividadCliente",l:"Describa la actividad del establecimiento",t:"textarea",r:1,full:1,h:"Qué se vende o qué servicio se presta, y cómo funciona el día a día."},
+  {k:"productosOp",l:"Productos que se venden o servicios que se prestan",t:"textarea",full:1},
+  {k:"serviciosAdicionales",l:"¿Se realiza alguna de estas actividades en el local?",t:"checks",full:1,o:["Taller o reparaciones","Cambio de aceite / lubricación","Lavado de vehículos","Cocina o preparación de alimentos","Almacenamiento de combustibles o químicos","Ninguna"]},
+  {k:"horarioOp",l:"Horario de atención",r:1,h:"Ej. 09:00 a 20:00 horas."},
+  {k:"diasOp",l:"Días de operación",h:"Ej. lunes a domingo."},
+  {k:"colaboradores",l:"Número de colaboradores",t:"number",r:1,h:"Total de personas que trabajan en el local. Con este dato se calcula el agua y los residuos."},
+  {t:"calc"},
+  {k:"turnos",l:"Número de turnos",t:"number"},
+  {k:"visitantes",l:"Clientes o visitantes promedio por día",t:"number"},
+  {k:"uniforme",l:"¿El personal usa uniforme y gafete?",t:"radio",o:SINO},
+  {k:"insumosOp",l:"Insumos que se utilizan",t:"textarea",full:1,h:"Ej. papel de facturas, tintas, productos de limpieza."},
+  {k:"maquinariaOp",l:"Mobiliario y equipo",t:"textarea",full:1,h:"Ej. estanterías, racks, equipo de cómputo, montacargas."},
+  {sub:"Mantenimiento y transporte"},
+  {k:"mantenimiento",l:"¿Quién realiza el mantenimiento?",t:"radio",o:["Personal propio","Empresa subcontratada","Administración del centro comercial"]},
+  {k:"personalMant",l:"Personas que realizan el mantenimiento",t:"number"},
+  {k:"horarioMant",l:"Horario del mantenimiento",h:"Ej. nocturno, sin atención a clientes."},
+  {k:"vehiculosTexto",l:"Vehículos del proyecto",t:"textarea",full:1,h:"Tipo y cantidad (panel, camión, motocicletas). Dónde se estacionan y dónde cargan y descargan mercadería."}
+ ]},
+ {id:"agua", t:"Agua", why:"Fuente del agua, consumo mensual y a dónde se descargan las aguas residuales y pluviales.", f:[
+  {t:"calc"},
+  {sub:"Agua potable"},
+  {k:"aguaFuente",l:"¿De dónde proviene el agua?",t:"select",r:1,o:["Red municipal","Red del centro comercial / administración","Pozo propio","Camión cisterna","Otra"]},
+  {k:"contador",l:"No. de contador (si tiene)"},
+  {k:"consumoAguaM3",l:"Consumo de agua (m³/mes)",t:"number",h:"Opcional. Promedio de los últimos recibos, como referencia del cálculo."},
+  {k:"aguaGarrafon",l:"¿El agua para beber es de garrafón?",t:"radio",o:SINO},
+  {k:"inodoros",l:"Inodoros",t:"number"},
+  {k:"lavamanos",l:"Lavamanos",t:"number"},
+  {k:"mingitorios",l:"Mingitorios",t:"number"},
+  {k:"pilas",l:"Pilas, lavaderos o áreas de limpieza",t:"number"},
+  {k:"duchas",l:"Duchas",t:"number"},
+  {k:"cocineta",l:"¿Hay cocineta o comedor para el personal?",t:"radio",o:SINO},
+  {sub:"Aguas residuales"},
+  {k:"descargaResidual",l:"¿A dónde se descargan las aguas residuales (drenaje)?",t:"select",r:1,o:["Drenaje municipal","Red de drenaje del centro comercial","Fosa séptica / pozo de absorción","Planta de tratamiento propia","No sabe"]},
+  {k:"tratamientoTexto",l:"Describa la fosa o planta de tratamiento",t:"textarea",full:1,show:["descargaResidual","Fosa séptica / pozo de absorción|Planta de tratamiento propia"]},
+  {k:"aguaEspecial",l:"¿Se generan aguas de procesos (lavado de vehículos, talleres, cocina industrial, químicos)?",t:"radio",o:SINO,r:1,full:1},
+  {k:"aguaEspecialTexto",l:"Describa el proceso y el volumen aproximado",t:"textarea",full:1,show:["aguaEspecial","Sí"]},
+  {sub:"Agua de lluvia"},
+  {k:"descargaPluvial",l:"¿A dónde se conduce el agua de lluvia?",t:"select",o:["Alcantarillado pluvial municipal","Red pluvial del centro comercial","A la calle / cuneta","Se infiltra en el terreno","Se capta para reúso","No sabe"]}
+ ]},
+ {id:"residuos", t:"Residuos sólidos", why:"Qué tipo de basura se genera, cuánta y quién la recolecta.", f:[
+  {t:"calc"},
+  {k:"recolector",l:"¿Quién recolecta la basura?",t:"select",r:1,o:["Tren de aseo municipal","Administración del centro comercial","Empresa privada","Otro"]},
+  {k:"recolectorNombre",l:"Nombre de la empresa recolectora (si aplica)"},
+  {k:"frecuencia",l:"Frecuencia de recolección",h:"Ej. diaria, 3 veces por semana."},
+  {k:"acopio",l:"¿Dónde se acumula la basura antes de su recolección?",full:1},
+  {k:"residuosKg",l:"Cantidad aproximada de basura (kg/día o bolsas/día)",h:"Opcional. Como referencia del cálculo."},
+  {k:"tiposResiduos",l:"Tipos de residuos comunes",t:"checks",full:1,o:["Cartón","Plástico / bolsas / termoencogible","Duroport (poliestireno)","Flejes","Papel de oficina","Orgánicos (comida)","Madera / tarimas","Vidrio","Metal"]},
+  {k:"reciclaje",l:"¿Se separa o vende algún material para reciclaje?",t:"radio",o:SINO},
+  {k:"reciclajeTexto",l:"¿Cuál material y a quién se entrega?",show:["reciclaje","Sí"],full:1},
+  {sub:"Residuos especiales y peligrosos"},
+  {k:"especiales",l:"¿Se generan alguno de estos residuos?",t:"checks",full:1,o:["Lámparas o luminarias","Baterías","Equipos electrónicos dañados o devueltos","Llantas","Cartuchos de tinta / tóner","Ninguno"]},
+  {k:"especialesGestor",l:"¿Qué empresa recibe esos residuos especiales?",full:1,h:"Nombre del gestor autorizado o del departamento interno que los maneja."},
+  {k:"peligrosos",l:"¿Se manejan aceites, lubricantes, solventes, combustibles u otros químicos peligrosos?",t:"radio",o:SINO,r:1,full:1},
+  {k:"peligrososTexto",l:"Describa cuáles, la cantidad y cómo se almacenan",t:"textarea",full:1,show:["peligrosos","Sí"]}
+ ]},
+ {id:"energia", t:"Energía y climatización", why:"Consumo eléctrico y equipos con refrigerantes o combustibles.", f:[
+  {k:"consumoEnergia",l:"Consumo de energía eléctrica (kWh/mes)",t:"number",r:1,h:"Promedio de los últimos recibos."},
+  {k:"proveedorEnergia",l:"Proveedor de energía",t:"select",o:["EEGSA","ENERGUATE (DEOCSA / DEORSA)","Empresa municipal","Centro comercial","Otro"]},
+  {k:"aireAcond",l:"Aire acondicionado",t:"radio",o:["Propio del local","Lo provee el centro comercial","No tiene"],r:1,full:1},
+  {k:"numEquiposAC",l:"Cantidad de equipos",t:"number",show:["aireAcond","Propio del local"]},
+  {k:"refrigerante",l:"Tipo de refrigerante",t:"select",o:["R-410A","R-22","R-32","R-134a","No sabe"],show:["aireAcond","Propio del local"],h:"Aparece en la placa de la unidad exterior."},
+  {k:"refrigeracionComercial",l:"¿Hay cuartos fríos, congeladores o refrigeradores comerciales?",t:"radio",o:SINO,full:1},
+  {k:"plantaElectrica",l:"¿Tiene planta eléctrica?",t:"radio",o:SINO,r:1},
+  {k:"plantaTexto",l:"Capacidad (kW), combustible y cantidad almacenada",show:["plantaElectrica","Sí"],full:1},
+  {k:"combustibles",l:"¿Se usan o almacenan combustibles (diésel, gasolina, gas propano)?",t:"radio",o:SINO,full:1},
+  {k:"combustiblesTexto",l:"¿Cuáles, cantidad y uso?",show:["combustibles","Sí"],full:1}
+ ]},
+ {id:"seguridad", t:"Seguridad", why:"Medidas existentes de seguridad y salud ocupacional.", f:[
+  {k:"medidasSeguridad",l:"Medidas con las que cuenta el local",t:"checks",full:1,o:["Extintores","Señalización de rutas de evacuación","Salidas de emergencia","Botiquín de primeros auxilios","Detectores de humo","Capacitaciones al personal","Equipo de protección personal","Plan de respuesta a emergencias (CONRED)"]},
+  {k:"numExtintores",l:"Cantidad de extintores",t:"number"},
+  {k:"saludSeguridadCliente",l:"Otras medidas o comentarios",t:"textarea",full:1},
+  {k:"arboles",l:"¿Hay árboles o jardines dentro del área del proyecto?",t:"radio",o:SINO},
+  {k:"corteArboles",l:"¿Se cortará algún árbol?",t:"radio",o:SINO}
+ ]},
+ {id:"documentos", t:"Documentos y envío", why:"Marque los documentos que adjuntará. Envíe este formulario junto con los documentos por correo.", f:[
+  {k:"docs",l:"Documentos que adjunta",t:"checks",full:1,o:[
+   "RTU actualizado de la empresa",
+   "Escritura de constitución",
+   "Patente de Sociedad",
+   "Patente de Comercio de Empresa",
+   "Patente de Comercio del establecimiento",
+   "Nombramiento del representante legal",
+   "DPI del representante legal (ambos lados)",
+   "Certificación del Registro de la Propiedad (finca, folio, libro)",
+   "Contrato de arrendamiento o autorización del propietario",
+   "Planos (ubicación, localización, conjunto, arquitectónico, instalaciones)",
+   "Recibos de agua (últimos 3 a 6 meses)",
+   "Recibos de energía eléctrica (últimos 3 a 6 meses)",
+   "Licencia ambiental del centro comercial (si aplica)",
+   "Fotografías del local (fachada, interior, sanitarios, bodega, acopio de basura)"]},
+  {k:"observaciones",l:"Observaciones",t:"textarea",full:1,h:"Datos que no conoce, aclaraciones o cualquier información adicional."},
+  {k:"llenadoPor",l:"Nombre de quien llenó el formulario",r:1},
+  {k:"fechaLlenado",l:"Fecha",t:"date"}
+ ]}
+];
+
+var data = {};
+try{ data = JSON.parse(localStorage.getItem(STORE)||"{}")||{}; }catch(e){ data = {}; }
+
+var form = document.getElementById("form");
+var stepList = document.getElementById("stepList");
+var cur = 0;
+
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+
+function visible(fd){
+  if(!fd.show) return true;
+  var v = data[fd.show[0]]||"", want = fd.show[1];
+  if(want==="") return v==="";
+  if(want.charAt(0)==="!") return v!=="" && v!==want.slice(1);
+  return want.split("|").indexOf(v)>-1;
+}
+
+function fieldHTML(fd){
+  if(fd.t==="calc") return '<div class="f full calcbox" data-calc="1"></div>';
+  if(fd.sub) return '<div class="subhead" data-show="'+(fd.show?esc(fd.show.join("="))+'"':'"')+'>'+esc(fd.sub)+'</div>';
+  var id="f_"+fd.k, t=fd.t||"text", v=data[fd.k], req=fd.r?' <span class="req" aria-hidden="true">*</span>':"";
+  var cls="f"+(fd.full||t==="textarea"||t==="checks"?" full":"");
+  var h=fd.h?'<span class="help" id="h_'+fd.k+'">'+esc(fd.h)+'</span>':"";
+  var aria=fd.h?' aria-describedby="h_'+fd.k+'"':"";
+  var inner;
+  if(t==="radio"||t==="checks"){
+    var arr = t==="checks" ? (Array.isArray(v)?v:[]) : null;
+    inner='<div class="legend" id="lg_'+fd.k+'">'+esc(fd.l)+req+'</div><div class="opts" role="'+(t==="radio"?"radiogroup":"group")+'" aria-labelledby="lg_'+fd.k+'">'+
+      fd.o.map(function(o,i){
+        var chk = t==="radio" ? (v===o) : arr.indexOf(o)>-1;
+        return '<label><input type="'+(t==="radio"?"radio":"checkbox")+'" name="'+fd.k+'" value="'+esc(o)+'"'+(chk?" checked":"")+'> '+esc(o)+'</label>';
+      }).join("")+'</div>'+h;
+  } else if(t==="select"){
+    inner='<label for="'+id+'">'+esc(fd.l)+req+'</label><select id="'+id+'" name="'+fd.k+'"'+aria+'><option value="">— Seleccione —</option>'+
+      fd.o.map(function(o){return '<option'+(v===o?" selected":"")+'>'+esc(o)+'</option>';}).join("")+'</select>'+h;
+  } else if(t==="textarea"){
+    inner='<label for="'+id+'">'+esc(fd.l)+req+'</label><textarea id="'+id+'" name="'+fd.k+'"'+aria+'>'+esc(v||"")+'</textarea>'+h;
+  } else {
+    var extra = t==="number" ? ' inputmode="decimal" min="0" step="any"' : "";
+    inner='<label for="'+id+'">'+esc(fd.l)+req+'</label><input type="'+t+'" id="'+id+'" name="'+fd.k+'" value="'+esc(v||"")+'"'+extra+aria+'>'+h;
+  }
+  return '<div class="'+cls+'" data-k="'+fd.k+'">'+inner+'</div>';
+}
+
+function render(){
+  form.innerHTML = S.map(function(s,i){
+    var last = i===S.length-1;
+    return '<section class="card" id="sec_'+s.id+'" aria-labelledby="t_'+s.id+'"><h2 id="t_'+s.id+'">'+(i+1)+'. '+esc(s.t)+'</h2><p class="why">'+esc(s.why)+'</p>'+
+      (last?'<div id="finalBox"></div>':'')+
+      '<div class="grid">'+s.f.map(fieldHTML).join("")+'</div>'+
+      (last?'<div class="note" style="margin-top:20px"><strong>Para enviar:</strong> 1) presione «Descargar formulario lleno»; 2) presione «Preparar correo» y adjunte el archivo descargado junto con los documentos marcados arriba.</div>'+
+        '<div class="actions"><button type="button" class="btn primary" data-act="download">Descargar formulario lleno (.json)</button><button type="button" class="btn" data-act="mail">Preparar correo</button><button type="button" class="btn" data-act="print">Imprimir / guardar PDF</button><button type="button" class="btn" data-act="import">Cargar un formulario guardado</button><button type="button" class="btn" data-act="clear">Borrar todo</button></div>':'')+
+      '<div class="pager">'+(i>0?'<button type="button" class="btn" data-go="'+(i-1)+'">← Anterior</button>':'<span></span>')+
+      (!last?'<button type="button" class="btn primary" data-go="'+(i+1)+'">Siguiente →</button>':'')+'</div></section>';
+  }).join("");
+  applyVisibility(); go(cur, true);
+}
+
+function applyVisibility(){
+  S.forEach(function(s){ s.f.forEach(function(fd){
+    var vis = visible(fd);
+    var el = fd.sub ? null : form.querySelector('[data-k="'+fd.k+'"]');
+    if(el) el.classList.toggle("hidden", !vis);
+  });});
+  form.querySelectorAll(".subhead[data-show]").forEach(function(el){
+    var sh = el.getAttribute("data-show"); if(!sh) return;
+    var p = sh.split("="); el.classList.toggle("hidden", !visible({show:[p[0],p[1]]}));
+  });
+}
+
+function filled(v){ return Array.isArray(v) ? v.length>0 : (v!==undefined && String(v).trim()!==""); }
+function reqFields(s){ return s.f.filter(function(fd){return fd.k && fd.r && visible(fd);}); }
+
+function calc(){
+  var n = parseFloat(data.colaboradores);
+  if(isNaN(n) || n<=0) return null;
+  var lpd = n*FACT.aguaLpd, m3d = lpd/1000, m3m = m3d*FACT.dias;
+  var kgd = n*FACT.residuosKgpd;
+  return {colaboradores:n, aguaLdia:lpd, aguaM3dia:m3d, aguaM3mes:m3m,
+          aroLdia:lpd*FACT.aro, aroM3dia:m3d*FACT.aro, aroM3mes:m3m*FACT.aro,
+          residuosKgDia:kgd, residuosKgMes:kgd*FACT.dias, factores:FACT};
+}
+function fmt(n,d){ return n.toLocaleString("es-GT",{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function updateCalc(){
+  var c=calc(), html;
+  if(!c) html='<h3>Cálculo de agua y residuos</h3><p style="margin:0">Indique el número de colaboradores en la sección «Operación» para calcular el consumo de agua, el agua residual y los residuos sólidos.</p>';
+  else html='<h3>Cálculo con '+fmt(c.colaboradores,0)+' colaborador'+(c.colaboradores===1?'':'es')+'</h3><table>'+
+    '<tr><td>Consumo de agua potable<span class="formula">'+fmt(c.colaboradores,0)+' × '+FACT.aguaLpd+' L/día = '+fmt(c.aguaLdia,0)+' L/día · × '+FACT.dias+' días</span></td><td class="v">'+fmt(c.aguaM3dia,2)+' m³/día<br>'+fmt(c.aguaM3mes,2)+' m³/mes</td></tr>'+
+    '<tr><td>Agua residual de tipo ordinario<span class="formula">'+Math.round(FACT.aro*100)+' % del agua potable consumida</span></td><td class="v">'+fmt(c.aroM3dia,2)+' m³/día<br>'+fmt(c.aroM3mes,2)+' m³/mes</td></tr>'+
+    '<tr><td>Residuos sólidos comunes<span class="formula">'+fmt(c.colaboradores,0)+' × '+FACT.residuosKgpd+' kg/día · × '+FACT.dias+' días</span></td><td class="v">'+fmt(c.residuosKgDia,2)+' kg/día<br>'+fmt(c.residuosKgMes,2)+' kg/mes</td></tr>'+
+    '</table><p>Cálculo automático; el consultor lo revisa al preparar el instrumento.</p>';
+  form.querySelectorAll(".calcbox").forEach(function(el){ if(el._h!==html){ el.innerHTML=html; el._h=html; } });
+}
+
+function updateProgress(){
+  updateCalc();
+  var tot=0, ok=0;
+  if(!stepList.children.length){
+    stepList.innerHTML = S.map(function(s,i){
+      return '<li><button type="button" data-go="'+i+'"><span class="num"></span><span class="lbl">'+esc(s.t)+'</span><span class="pct"></span></button></li>';
+    }).join("");
+  }
+  S.forEach(function(s,i){
+    var rq=reqFields(s), d=rq.filter(function(fd){return filled(data[fd.k]);}).length;
+    tot+=rq.length; ok+=d;
+    var pct = rq.length? Math.round(d/rq.length*100) : 100;
+    var li=stepList.children[i], btn=li.firstChild;
+    li.classList.toggle("done", pct===100);
+    if(i===cur) btn.setAttribute("aria-current","true"); else btn.removeAttribute("aria-current");
+    btn.querySelector(".num").textContent = pct===100?"✓":String(i+1);
+    btn.querySelector(".pct").textContent = pct+"%";
+  });
+  var p = tot? Math.round(ok/tot*100):0;
+  document.getElementById("overallTxt").textContent = p+"% de los datos principales";
+  document.getElementById("overallBar").style.width = p+"%";
+  var fb = document.getElementById("finalBox");
+  if(fb){
+    var miss=[], total=0;
+    S.forEach(function(s,i){ var n=reqFields(s).filter(function(fd){return !filled(data[fd.k]);}); total+=n.length;
+      if(n.length) miss.push('<li><a data-jump="'+i+'|'+n[0].k+'">'+esc(s.t)+'</a> — '+n.length+' pendiente'+(n.length>1?'s':'')+': '+n.slice(0,3).map(function(fd){return esc(fd.l);}).join(", ")+(n.length>3?'…':'')+'</li>'); });
+    var html = total ? '<div class="note"><strong>Datos principales pendientes: '+total+'.</strong> Puede enviar el formulario de todas formas; lo que falte lo completaremos con usted.</div><ul class="missing">'+miss.join("")+'</ul>'
+      : '<div class="note" style="background:var(--accent-soft)"><strong>¡Listo!</strong> Todos los datos principales están completos.</div>';
+    if(fb._h!==html){ fb.innerHTML=html; fb._h=html; }
+  }
+}
+
+function go(i, noScroll){
+  cur = Math.max(0, Math.min(S.length-1, i));
+  form.querySelectorAll("section.card").forEach(function(el,j){el.classList.toggle("active", j===cur);});
+  updateProgress();
+  if(!noScroll) window.scrollTo({top:0, behavior:"smooth"});
+}
+
+var saveT;
+function save(){
+  try{ localStorage.setItem(STORE, JSON.stringify(data)); var d=new Date(); document.getElementById("saved").textContent="Guardado en este navegador · "+d.toLocaleTimeString("es-GT",{hour:"2-digit",minute:"2-digit"}); }
+  catch(e){ document.getElementById("saved").textContent="No se pudo guardar en el navegador — descargue el archivo antes de cerrar"; }
+}
+
+function onInput(e){
+  var el=e.target, k=el.name; if(!k) return;
+  if(el.type==="checkbox"){
+    data[k] = Array.prototype.map.call(form.querySelectorAll('input[name="'+k+'"]:checked'), function(x){return x.value;});
+  } else if(el.type==="radio"){ data[k]=el.value; }
+  else data[k]=el.value;
+  applyVisibility(); updateProgress();
+  clearTimeout(saveT); saveT=setTimeout(save, 300);
+}
+form.addEventListener("input", onInput);
+form.addEventListener("change", onInput);
+
+document.addEventListener("click", function(e){
+  var g=e.target.closest("[data-go]"); if(g){ go(+g.getAttribute("data-go")); return; }
+  var j=e.target.closest("[data-jump]");
+  if(j){ var p=j.getAttribute("data-jump").split("|"); go(+p[0]); setTimeout(function(){ var el=form.querySelector('[data-k="'+p[1]+'"] input, [data-k="'+p[1]+'"] select, [data-k="'+p[1]+'"] textarea'); if(el){el.focus(); el.scrollIntoView({block:"center"});} },250); return; }
+  var a=e.target.closest("[data-act]"); if(!a) return;
+  var act=a.getAttribute("data-act");
+  if(act==="download") download();
+  if(act==="mail") mail();
+  if(act==="print") window.print();
+  if(act==="import") document.getElementById("importFile").click();
+  if(act==="clear"){ if(confirmClear()){ data={}; try{localStorage.removeItem(STORE);}catch(e){} cur=0; render(); toast("Formulario borrado"); } }
+});
+
+var clearArmed=0;
+function confirmClear(){ var now=Date.now(); if(now-clearArmed<4000){clearArmed=0; return true;} clearArmed=now; toast("Presione «Borrar todo» otra vez para confirmar"); return false; }
+
+function toast(m){ var t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove("show");},3200); }
+
+/* ---- Export mapped to the SAGA expediente schema ---- */
+function num(v){ var n=parseFloat(v); return isNaN(n)?null:n; }
+function f2(n){ return n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function pad2(n){ return n<10?"0"+n:String(n); }
+function toSaga(){
+  var d=data, out={};
+  var operando = d.estadoProyecto!=="Por construir o remodelar";
+  var obra = d.estadoProyecto && d.estadoProyecto!=="Ya está operando";
+  var dir = [d.calle, d.complemento, d.zona?("zona "+d.zona):"", d.aldea, d.nombreComplejo && d.enCentroComercial==="Sí" ? d.nombreComplejo : "", d.municipio?("municipio de "+d.municipio):"", d.depto?("departamento de "+d.depto):""].filter(Boolean).join(", ");
+  var colab = num(d.colaboradores), c = calc(), ind = d.tipoPersona===IND;
+  var agua = c ? c.aguaM3mes : num(d.consumoAguaM3);
+  var fdate = function(s){ if(!s) return ""; var p=s.split("-"); return p.length===3? p[2]+"/"+p[1]+"/"+p[0] : s; };
+  out = {
+    _comentario: "Generado por el formulario de levantamiento de información del cliente. Los campos vacíos o PENDIENTE los completa el consultor.",
+    _origen: {formulario:"levantamiento-categoria-c", version:1, exportado:new Date().toISOString(), llenadoPor:d.llenadoPor||"", fechaLlenado:d.fechaLlenado||""},
+    estado: operando ? "operando" : "por construir",
+    via: "saga",
+    nombreProyecto: (d.nombreProyecto||"").toUpperCase(),
+    direccionProyecto: (d.direccionDocumento||dir).toUpperCase(),
+    fuenteDireccion: d.fuenteDireccion||"",
+    tipoPersona: ind?"individual":(d.tipoPersona?"juridica":""),
+    tipoEmpresa: ind?"Empresa individual":(d.tipoSociedad||""),
+    calle:d.calle||"", complemento:d.complemento||"", zona:d.zona||"", municipio:d.municipio||"", depto:d.depto||"",
+    actividadRTU:(d.actividadRTU||"").toUpperCase(),
+    repNombre:((ind?d.propNombre:d.repNombre)||"").toUpperCase(), cui:(ind?d.propCUI:d.cui)||"", repNit:(ind?d.propNit:d.repNit)||"",
+    repCargo: ind?"Propietario":(d.repCargo||""), repTel:(ind?d.propTel:d.repTel)||"", repEmail:(ind?d.propEmail:d.repEmail)||"",
+    razonSocial:((ind?d.propNombre:d.razonSocial)||"").toUpperCase(), nombreComercial:(d.nombreComercial||"").toUpperCase(),
+    escritura:d.escritura||"", fechaConstitucion:fdate(d.fechaConstitucion), nitEmpresa:(ind?d.propNit:d.nitEmpresa)||"", rtu:(ind?d.propNit:d.nitEmpresa)||"",
+    patSocReg:d.patSocReg||"", patSocFol:d.patSocFol||"", patSocLib:d.patSocLib||"",
+    patComReg:d.patComReg||"", patComFol:d.patComFol||"", patComLib:d.patComLib||"",
+    patSucReg:d.patSucReg||"", patSucFol:d.patSucFol||"", patSucLib:d.patSucLib||"",
+    patenteSucursalExpediente:d.patenteSucursalExpediente||"",
+    finca:d.finca||"", folio:d.folio||"", libro:d.libro||"", libroDepto:d.libroDepto||d.depto||"",
+    contactoTel:d.contactoTel||"", contactoEmail:d.contactoEmail||"", dirFiscal:d.dirFiscal||(ind?d.propDireccion:"")||"",
+    faseConstruccion: obra?"si":"no", faseOperacion:"si", faseAbandono:"si",
+    horarioTexto: d.horarioOp ? d.horarioOp+(d.diasOp?" ("+d.diasOp+")":"") : "",
+    personalTexto: colab!==null ? pad2(colab)+" colaboradores en fase de operación." : "",
+    areaTerreno:d.areaTerreno||"", areaOcupacion:d.areaOcupacion||d.areaConstruccion||"", areaConstruccion:d.areaConstruccion||"",
+    entorno: d.entorno==="Rural"?"Rural":(d.entorno?"Urbana":""), zonaRural: d.entorno==="Rural"?"si":"no",
+    colNorte:d.colNorte||"", colSur:d.colSur||"", colEste:d.colEste||"", colOeste:d.colOeste||"",
+    insumosOp:d.insumosOp||"", maquinariaOp:d.maquinariaOp||"", productosOp:d.productosOp||"",
+    horarioOp:d.horarioOp||"", personalOp: colab!==null? pad2(colab)+" personas." : "",
+    horarioMant:d.horarioMant||"", personalMant: num(d.personalMant)!==null? pad2(num(d.personalMant))+" personas de acuerdo a la complejidad de los trabajos." : "",
+    aguaPotable:"si",
+    aguaTipo: [d.aguaFuente||"", d.aguaGarrafon==="Sí"?"El agua para consumo humano se suministra por medio de garrafones.":""].filter(Boolean).join(". "),
+    consumoAgua: agua!==null ? f2(agua)+" m³/mes ("+f2(agua/FACT.dias)+" m³/día)" : "PENDIENTE: indicar número de colaboradores",
+    consumoEnergia: num(d.consumoEnergia)!==null ? f2(num(d.consumoEnergia))+" kWh/mes" : "PENDIENTE",
+    refrigerante: d.aireAcond==="Propio del local" ? (d.refrigerante||"PENDIENTE: tipo de refrigerante")+(d.numEquiposAC?" ("+d.numEquiposAC+" equipos)":"") : (d.aireAcond==="Lo provee el centro comercial"?"La climatización es provista por el centro comercial.":(d.aireAcond==="No tiene"?"No cuenta con sistema de aire acondicionado.":"PENDIENTE")),
+    combustibles: d.combustibles==="Sí" ? (d.combustiblesTexto||"PENDIENTE: detallar") : "No se utilizan ni almacenan combustibles dentro del proyecto.",
+    lubricantes: d.peligrosos==="Sí" ? (d.peligrososTexto||"PENDIENTE: detallar") : "No se utilizan ni almacenan lubricantes dentro del proyecto.",
+    recolComunes:"si",
+    recolEspeciales: (Array.isArray(d.especiales)&&d.especiales.length&&d.especiales.indexOf("Ninguno")<0)?"si":"no",
+    recolPeligrosos: d.peligrosos==="Sí"?"si":"no",
+    aguaOrdinaria:"si", aguaEspecial: d.aguaEspecial==="Sí"?"si":"no",
+    volumenARO: {"construcción": obra?"PENDIENTE":"N/A", "operación": agua!==null? f2(agua*FACT.aro) : "PENDIENTE"},
+    residuos: {comunes: {"operación": c ? f2(c.residuosKgDia)+" kg/día" : "PENDIENTE"}},
+    descarga: {"operación": {
+      alcantarillado: d.descargaResidual==="Drenaje municipal"||d.descargaResidual==="Red de drenaje del centro comercial",
+      fosaSeptica: d.descargaResidual==="Fosa séptica / pozo de absorción",
+      plantaTratamiento: d.descargaResidual==="Planta de tratamiento propia"}},
+    tratamiento: (d.descargaResidual==="Planta de tratamiento propia"||d.descargaResidual==="Fosa séptica / pozo de absorción")?"si":"no",
+    tratamientoTexto: d.tratamientoTexto||"",
+    licenciaMadre: d.enCentroComercial==="Sí" ? (d.licenciaMadre||"PENDIENTE: licencia ambiental del centro comercial") : "NO APLICA",
+    expedienteMadre: d.enCentroComercial==="Sí" ? (d.expedienteMadre||"PENDIENTE") : "NO APLICA",
+    corteArboles: d.corteArboles==="Sí"?"si":"no",
+    vehiculosTexto:d.vehiculosTexto||"",
+    fechaPresentacion:"PENDIENTE: fecha de presentación en SAGA"
+  };
+  out._calculos = c ? {
+    criterio: "Colaboradores × dotación; agua residual ordinaria = "+Math.round(FACT.aro*100)+" % del agua potable consumida",
+    colaboradores:c.colaboradores, dotacionLporColabDia:FACT.aguaLpd, residuosKgPorColabDia:FACT.residuosKgpd, diasMes:FACT.dias,
+    aguaPotableM3dia:+c.aguaM3dia.toFixed(3), aguaPotableM3mes:+c.aguaM3mes.toFixed(2),
+    aguaResidualOrdinariaM3dia:+c.aroM3dia.toFixed(3), aguaResidualOrdinariaM3mes:+c.aroM3mes.toFixed(2),
+    residuosComunesKgDia:+c.residuosKgDia.toFixed(2), residuosComunesKgMes:+c.residuosKgMes.toFixed(2),
+    referenciaRecibosM3mes: num(d.consumoAguaM3), referenciaClienteResiduos: d.residuosKg||""
+  } : null;
+  out._cliente = JSON.parse(JSON.stringify(d)); /* respuestas originales para cálculos y redacción */
+  return out;
+}
+
+function fileName(){ var n=(data.nombreProyecto||"proyecto").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"").toLowerCase(); return "levantamiento-"+(n||"proyecto")+".json"; }
+
+function download(){
+  try{
+    var blob=new Blob([JSON.stringify(toSaga(),null,2)],{type:"application/json"});
+    var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fileName();
+    document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href); a.remove();},500);
+    toast("Archivo descargado: "+fileName());
+  }catch(e){ toast("No se pudo descargar. Use «Imprimir / guardar PDF»."); }
+}
+
+function mail(){
+  var subj="Levantamiento de información — "+(data.nombreProyecto||"Instrumento ambiental Categoría C");
+  var docs=Array.isArray(data.docs)?data.docs:[];
+  var body="Adjunto el formulario de levantamiento de información ("+fileName()+") y los siguientes documentos:\n\n"+
+    (docs.length?docs.map(function(x){return "- "+x;}).join("\n"):"- (ninguno marcado)")+
+    "\n\nProyecto: "+(data.nombreProyecto||"")+"\nEmpresa: "+(data.razonSocial||data.propNombre||"")+"\nContacto: "+(data.contactoNombre||"")+" · "+(data.contactoTel||"")+
+    (data.observaciones?"\n\nObservaciones:\n"+data.observaciones:"")+"\n\n"+(data.llenadoPor||"");
+  window.location.href="mailto:"+EMAIL+"?subject="+encodeURIComponent(subj)+"&body="+encodeURIComponent(body);
+}
+
+document.getElementById("importFile").addEventListener("change", function(e){
+  var file=e.target.files[0]; if(!file) return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{ var j=JSON.parse(r.result); data = j._cliente || j; save(); render(); toast("Formulario cargado"); }
+    catch(err){ toast("El archivo no es un formulario válido"); }
+    e.target.value="";
+  };
+  r.readAsText(file);
+});
+
+render();
+if(Object.keys(data).length) document.getElementById("saved").textContent="Se recuperó lo que llenó anteriormente";
+})();
+</script>
+</body>
+</html>
